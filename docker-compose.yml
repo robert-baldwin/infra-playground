@@ -1,0 +1,7 @@
+services:
+  amqp-test:
+    build: amqp-test
+    links:
+      - rabbitmq
+  rabbitmq:
+    image: rabbitmq:3-management
