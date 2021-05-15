@@ -1,7 +1,19 @@
 services:
-  amqp-test:
-    build: amqp-test
-    links:
-      - rabbitmq
+  krakend:
+    image: devopsfaith/krakend:latest
+    ports:
+      - 8080:8080
+    volumes:
+      - ./krakend:/etc/krakend
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
   rabbitmq:
     image: rabbitmq:3-management
+    ports:
+      - 15672:15672
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 10s
+      timeout: 10s
+      retries: 3
