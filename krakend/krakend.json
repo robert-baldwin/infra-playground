@@ -1,5 +1,15 @@
 {
-   "version":2,
+  "version": 2,
+  "extra_config": {
+    "github_com/devopsfaith/krakend-opencensus": {
+      "exporters": {
+        "influxdb": {
+            "address": "http://influxdb:8086",
+            "timeout": "1s"
+        }
+      }
+    }
+  },
    "endpoints": [
       {
          "endpoint":"/produce",

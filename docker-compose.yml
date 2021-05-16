@@ -17,3 +17,17 @@ services:
       interval: 10s
       timeout: 10s
       retries: 3
+  influxdb:
+    image: influxdb:latest
+    ports:
+      - 8086:8086
+    volumes:
+      - ./influxdb/docker-volume:/var/lib/influxdb2
+      - ./influxdb/config.yml:/etc/influxdb2/config.yml
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - 3000:3000
+    user: "472"
+    volumes:
+      - ./grafana/docker-volume:/var/lib/grafana
