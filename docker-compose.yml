@@ -2,12 +2,40 @@ services:
   krakend:
     image: devopsfaith/krakend:latest
     ports:
-      - 8080:8080
+      - 80:8080
     volumes:
       - ./krakend:/etc/krakend
     depends_on:
       rabbitmq:
         condition: service_healthy
+  keycloak:
+    image: quay.io/keycloak/keycloak:latest
+    ports:
+      - 8080:8080
+    depends_on:
+      keycloak-db:
+        condition: service_healthy
+    environment:
+      KEYCLOAK_USER: admin
+      KEYCLOAK_PASSWORD: admin
+      DB_VENDOR: POSTGRES
+      DB_ADDR: keycloak-db
+      DB_DATABASE: keycloak
+      DB_USER: keycloak
+      DB_PASSWORD: password
+  keycloak-db:
+    image: postgres:latest
+    volumes:
+      - ./keycloak/postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U keycloak"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    environment:
+      POSTGRES_DB: keycloak
+      POSTGRES_USER: keycloak
+      POSTGRES_PASSWORD: password
   rabbitmq:
     image: rabbitmq:3-management
     ports:
@@ -15,7 +43,7 @@ services:
     healthcheck:
       test: rabbitmq-diagnostics -q ping
       interval: 10s
-      timeout: 10s
+      timeout: 5s
       retries: 3
   influxdb:
     image: influxdb:latest

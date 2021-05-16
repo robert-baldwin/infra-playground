@@ -1,24 +1,23 @@
 {
   "version": 2,
-  "extra_config": {
-    "github_com/devopsfaith/krakend-opencensus": {
-      "exporters": {
-        "influxdb": {
-            "address": "http://influxdb:8086",
-            "timeout": "1s"
-        }
-      }
-    }
-  },
   "endpoints": [
+    {
+      "endpoint": "/mockbin",
+      "method": "GET",
+      "querystring_params": [ "foo", "bar", "baz", "qux" ],
+      "backend": [
+        {
+          "host": [ "https://mockbin.org" ],
+          "url_pattern": "/request"
+        }
+      ]
+    },
     {
       "endpoint": "/produce",
       "method": "POST",
       "backend": [
         {
-          "host":[
-            "amqp://guest:guest@rabbitmq:5672"
-          ],
+          "host": [ "amqp://guest:guest@rabbitmq:5672" ],
           "disable_host_sanitize": true,
           "extra_config": {
             "github.com/devopsfaith/krakend-amqp/produce": {
@@ -37,11 +36,10 @@
     },
     {
       "endpoint": "/consume",
-      "backend":[
+      "method": "GET",
+      "backend": [
         {
-          "host":[
-            "amqp://guest:guest@rabbitmq:5672"
-          ],
+          "host": [ "amqp://guest:guest@rabbitmq:5672" ],
           "disable_host_sanitize": true,
           "extra_config": {
             "github.com/devopsfaith/krakend-amqp/consume": {
@@ -61,5 +59,15 @@
         }
       ]
     }
-  ]
+  ],
+  "extra_config": {
+    "github_com/devopsfaith/krakend-opencensus": {
+      "exporters": {
+        "influxdb": {
+            "address": "http://influxdb:8086",
+            "timeout": "1s"
+        }
+      }
+    }
+  }
 }
