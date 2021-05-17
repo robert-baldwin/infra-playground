@@ -91,9 +91,9 @@
   "extra_config": {
     "github_com/devopsfaith/krakend-opencensus": {
       "exporters": {
-        "influxdb": {
-            "address": "http://influxdb:8086",
-            "timeout": "1s"
+        "prometheus": {
+          "port": "9090",
+          "namespace": "krakend"
         }
       }
     }

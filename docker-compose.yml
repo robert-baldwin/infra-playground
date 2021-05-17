@@ -45,13 +45,12 @@ services:
       interval: 10s
       timeout: 5s
       retries: 3
-  influxdb:
-    image: influxdb:latest
+  prometheus:
+    image: prom/prometheus:latest
     ports:
-      - 8086:8086
+      - 9090:9090
     volumes:
-      - ./influxdb/docker-volume:/var/lib/influxdb2
-      - ./influxdb/config.yml:/etc/influxdb2/config.yml
+      - ./prometheus:/etc/prometheus
   grafana:
     image: grafana/grafana:latest
     ports:
@@ -59,3 +58,8 @@ services:
     user: "472"
     volumes:
       - ./grafana/docker-volume:/var/lib/grafana
+    depends_on:
+      - prometheus
+    restart: always
+    environment:
+      GF_INSTALL_PLUGINS: "grafana-clock-panel,grafana-simple-json-datasource"
