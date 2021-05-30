@@ -21,6 +21,10 @@ serve:
         - Content-Type
       allow_credentials: true
       debug: true
+  prometheus:
+    host: oathkeeper
+    port: 9000
+    metrics_path: /metrics
 
 errors:
   fallback:

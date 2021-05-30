@@ -1,51 +1,18 @@
 services:
-  krakend:
-    image: devopsfaith/krakend:latest
-    volumes:
-      - ./krakend:/etc/krakend
+  oathkeeper:
+    image: oryd/oathkeeper:v0.38
     depends_on:
-      rabbitmq:
-        condition: service_healthy
-  rabbitmq:
-    image: rabbitmq:3-management
+      - kratos
     ports:
-      - 15672:15672
-    healthcheck:
-      test: rabbitmq-diagnostics -q ping
-      interval: 10s
-      timeout: 5s
-      retries: 3
-  jaeger:
-    image: jaegertracing/all-in-one:latest
-    ports:
-      - 16686:16686
-  prometheus:
-    image: prom/prometheus:latest
-    ports:
-      - 9090:9090
-    volumes:
-      - ./prometheus:/etc/prometheus
-  grafana:
-    image: grafana/grafana:latest
-    ports:
-      - 3000:3000
-    user: "472"
-    volumes:
-      - ./grafana/docker-volume:/var/lib/grafana
-    depends_on:
-      - prometheus
-    restart: always
+      - 4455:4455
+      - 4456:4456
+    command:
+      serve -c "/etc/config/oathkeeper/oathkeeper.yml"
     environment:
-      GF_INSTALL_PLUGINS: "grafana-clock-panel,grafana-simple-json-datasource"
-
-  kratos-migrate:
-    image: oryd/kratos:v0.6.3-alpha.1
-    environment:
-      - DSN=postgres://kratos:secret@postgresd:5432/kratos?sslmode=disable&max_conns=20&max_idle_conns=4
-    volumes:
-      - ./kratos/config/kratos:/etc/config/kratos
-    command: -c /etc/config/kratos/kratos.yml migrate sql -e --yes
+      - LOG_LEVEL=debug
     restart: on-failure
+    volumes:
+      - ./kratos/config/oathkeeper:/etc/config/oathkeeper
 
   kratos-selfservice-ui-node:
     image: oryd/kratos-selfservice-ui-node:v0.6.0-alpha.1
@@ -56,6 +23,15 @@ services:
       - KRATOS_BROWSER_URL=http://127.0.0.1:4455/.ory/kratos/public
       - JWKS_URL=http://oathkeeper:4456/.well-known/jwks.json
       - SECURITY_MODE=jwks
+    restart: on-failure
+
+  kratos-migrate:
+    image: oryd/kratos:v0.6.3-alpha.1
+    environment:
+      - DSN=postgres://kratos:secret@postgresd:5432/kratos?sslmode=disable&max_conns=20&max_idle_conns=4
+    volumes:
+      - ./kratos/config/kratos:/etc/config/kratos
+    command: -c /etc/config/kratos/kratos.yml migrate sql -e --yes
     restart: on-failure
 
   kratos:
@@ -71,20 +47,49 @@ services:
     volumes:
       - ./kratos/config/kratos:/etc/config/kratos
 
-  oathkeeper:
-    image: oryd/oathkeeper:v0.38
-    depends_on:
-      - kratos
-    ports:
-      - 4455:4455
-      - 4456:4456
-    command:
-      serve proxy -c "/etc/config/oathkeeper/oathkeeper.yml"
-    environment:
-      - LOG_LEVEL=debug
-    restart: on-failure
+  krakend:
+    image: devopsfaith/krakend:latest
     volumes:
-      - ./kratos/config/oathkeeper:/etc/config/oathkeeper
+      - ./krakend:/etc/krakend
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - 15672:15672
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    ports:
+      - 16686:16686
+
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - 9090:9090
+    volumes:
+      - ./prometheus:/etc/prometheus
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - 3000:3000
+    user: "472"
+    volumes:
+      - ./grafana/docker-volume:/var/lib/grafana
+    depends_on:
+      - prometheus
+    restart: always
+    environment:
+      GF_INSTALL_PLUGINS: "grafana-clock-panel,grafana-simple-json-datasource"
+
 
   mailslurper:
     image: oryd/mailslurper:latest-smtps
