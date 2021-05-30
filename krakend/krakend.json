@@ -2,37 +2,9 @@
   "version": 2,
   "endpoints": [
     {
-      "endpoint": "/token",
-      "method": "POST",
-      "querystring_params": [ "username", "password", "client_id", "grant_type", "client_secret", "scope" ],
-      "extra_config": {
-        "github.com/devopsfaith/krakend-jose/signer": {
-          "alg": "HS256",
-          "kid": "sim2",
-          "keys-to-sign": [ "access_token", "refresh_token" ],
-          "jwk-url": "http://keycloak:8080/auth/realms/myrealm/protocol/openid-connect/certs",
-          "disable_jwk_security": true
-        }
-      },
-      "backend": [
-        {
-          "host": [ "http://keycloak:8080" ],
-          "url_pattern": "/auth/realms/myrealm/protocol/openid-connect/token"
-        }
-      ]
-    },
-    {
       "endpoint": "/mockbin",
       "method": "GET",
       "querystring_params": [ "foo", "bar", "baz", "qux" ],
-      "extra_config": {
-        "github.com/devopsfaith/krakend-jose/validator": {
-          "alg": "RS256",
-          "jwk-url": "http://keycloak:8080/auth/realms/myrealm/protocol/openid-connect/certs",
-          "issuer": "http://keycloak:8080/auth/realms/myrealm",
-          "disable_jwk_security": true
-        }
-      },
       "backend": [
         {
           "host": [ "https://mockbin.org" ],
@@ -43,14 +15,6 @@
     {
       "endpoint": "/produce",
       "method": "POST",
-      "extra_config": {
-        "github.com/devopsfaith/krakend-jose/validator": {
-          "alg": "RS256",
-          "jwk-url": "http://keycloak:8080/auth/realms/myrealm/protocol/openid-connect/certs",
-          "issuer": "http://keycloak:8080/auth/realms/myrealm",
-          "disable_jwk_security": true
-        }
-      },
       "backend": [
         {
           "host": [ "amqp://guest:guest@rabbitmq:5672" ],
@@ -73,14 +37,6 @@
     {
       "endpoint": "/consume",
       "method": "GET",
-      "extra_config": {
-        "github.com/devopsfaith/krakend-jose/validator": {
-          "alg": "RS256",
-          "jwk-url": "http://keycloak:8080/auth/realms/myrealm/protocol/openid-connect/certs",
-          "issuer": "http://keycloak:8080/auth/realms/myrealm",
-          "disable_jwk_security": true
-        }
-      },
       "backend": [
         {
           "host": [ "amqp://guest:guest@rabbitmq:5672" ],
@@ -103,19 +59,5 @@
         }
       ]
     }
-  ],
-  "extra_config": {
-    "github_com/devopsfaith/krakend-opencensus": {
-      "exporters": {
-        "prometheus": {
-          "port": "9090",
-          "namespace": "krakend"
-        },
-        "jaeger": {
-          "endpoint": "http://jaeger:14268/api/traces",
-          "service_name": "krakend"
-        }
-      }
-    }
-  }
+  ]
 }

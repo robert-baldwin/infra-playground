@@ -1,41 +1,11 @@
 services:
   krakend:
     image: devopsfaith/krakend:latest
-    ports:
-      - 80:8080
     volumes:
       - ./krakend:/etc/krakend
     depends_on:
       rabbitmq:
         condition: service_healthy
-  keycloak:
-    image: quay.io/keycloak/keycloak:latest
-    ports:
-      - 8080:8080
-    depends_on:
-      keycloak-db:
-        condition: service_healthy
-    environment:
-      KEYCLOAK_USER: admin
-      KEYCLOAK_PASSWORD: admin
-      DB_VENDOR: POSTGRES
-      DB_ADDR: keycloak-db
-      DB_DATABASE: keycloak
-      DB_USER: keycloak
-      DB_PASSWORD: password
-  keycloak-db:
-    image: postgres:latest
-    volumes:
-      - ./keycloak/postgres-data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U keycloak"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
-    environment:
-      POSTGRES_DB: keycloak
-      POSTGRES_USER: keycloak
-      POSTGRES_PASSWORD: password
   rabbitmq:
     image: rabbitmq:3-management
     ports:
@@ -67,3 +37,68 @@ services:
     restart: always
     environment:
       GF_INSTALL_PLUGINS: "grafana-clock-panel,grafana-simple-json-datasource"
+
+  kratos-migrate:
+    image: oryd/kratos:v0.6.3-alpha.1
+    environment:
+      - DSN=postgres://kratos:secret@postgresd:5432/kratos?sslmode=disable&max_conns=20&max_idle_conns=4
+    volumes:
+      - ./kratos/config/kratos:/etc/config/kratos
+    command: -c /etc/config/kratos/kratos.yml migrate sql -e --yes
+    restart: on-failure
+
+  kratos-selfservice-ui-node:
+    image: oryd/kratos-selfservice-ui-node:v0.6.0-alpha.1
+    environment:
+      - PORT=4435
+      - KRATOS_PUBLIC_URL=http://kratos:4433/
+      - KRATOS_ADMIN_URL=http://kratos:4434/
+      - KRATOS_BROWSER_URL=http://127.0.0.1:4455/.ory/kratos/public
+      - JWKS_URL=http://oathkeeper:4456/.well-known/jwks.json
+      - SECURITY_MODE=jwks
+    restart: on-failure
+
+  kratos:
+    depends_on:
+      - kratos-migrate
+    image: oryd/kratos:v0.6.3-alpha.1
+    restart: unless-stopped
+    environment:
+      - DSN=postgres://kratos:secret@postgresd:5432/kratos?sslmode=disable&max_conns=20&max_idle_conns=4
+      - LOG_LEVEL=trace
+      - SERVE_PUBLIC_BASE_URL=http://127.0.0.1:4455/.ory/kratos/public/
+    command: serve -c /etc/config/kratos/kratos.yml --dev --watch-courier
+    volumes:
+      - ./kratos/config/kratos:/etc/config/kratos
+
+  oathkeeper:
+    image: oryd/oathkeeper:v0.38
+    depends_on:
+      - kratos
+    ports:
+      - 4455:4455
+      - 4456:4456
+    command:
+      serve proxy -c "/etc/config/oathkeeper/oathkeeper.yml"
+    environment:
+      - LOG_LEVEL=debug
+    restart: on-failure
+    volumes:
+      - ./kratos/config/oathkeeper:/etc/config/oathkeeper
+
+  mailslurper:
+    image: oryd/mailslurper:latest-smtps
+    ports:
+      - '4436:4436'
+      - '4437:4437'
+
+  postgresd:
+    image: postgres:9.6
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=kratos
+      - POSTGRES_PASSWORD=secret
+      - POSTGRES_DB=kratos
+    volumes:
+      - ./kratos/postgres-data:/var/lib/postgresql/data
