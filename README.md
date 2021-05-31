@@ -1,3 +1,6 @@
+## Diagram
+![Architecture Diagram](/docs/architecture.png)
+
 ## Components
 - oathkeeper: Identity & Access Proxy (IAP)
 - kratos-selfservice-ui-node: UI for Kratos self-service features
@@ -8,7 +11,6 @@
 - prometheus: Monitoring & Alerting
 - grafana: Data Visualization
 - mailslurper: dev SMTP mailserver
-
 
 Requests hit Oathkeeper which checks JWT with Kratos to determine access. Simple node app that implements browser login flow sits behind Oathkeeper. Krakend API gateway sits behind Oathkeeper. Internal messages sent to RabbitMQ via Krakend.
 
