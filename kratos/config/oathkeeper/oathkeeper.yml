@@ -23,7 +23,7 @@ serve:
       debug: true
   prometheus:
     host: oathkeeper
-    port: 9000
+    port: 9091
     metrics_path: /metrics
 
 errors:

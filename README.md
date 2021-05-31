@@ -14,5 +14,5 @@ Requests hit Oathkeeper which checks JWT with Kratos to determine access. Simple
 
 TODO:
 - [x] Enable prometheus for oathkeeper
+- [x] Add intranets to further secure/organize communication within network
 - [ ] Add consul to enable jaeger
-- [ ] Add intranets to further secure/organize communication within network

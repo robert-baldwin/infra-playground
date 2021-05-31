@@ -64,7 +64,7 @@
     "github_com/devopsfaith/krakend-opencensus": {
       "exporters": {
         "prometheus": {
-          "port": 9091,
+          "port": 9092,
           "tag_host": true,
           "tag_path": true,
           "tag_method": true,
