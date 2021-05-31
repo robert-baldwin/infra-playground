@@ -1,0 +1,26 @@
+digraph {
+    browser -> oathkeeper [label=":4455"];
+    oathkeeper -> kratos [label=":4433"]
+    oathkeeper -> login_ui [label=":4435"]
+    oathkeeper -> krakend [label=":8080"]
+    login_ui -> kratos [label=":4434"];
+    kratos -> mailslurper [label=":1025"];
+    krakend -> rabbitmq [label=":5672"];
+    krakend -> mockbin;
+    prometheus -> prometheus [label=":9090"];
+    prometheus -> oathkeeper [label=":9091"];
+    prometheus -> krakend [label=":9092"];
+    grafana -> prometheus [label=":9090"];
+
+    subgraph cluster0 {
+      label=""
+      oathkeeper
+      kratos
+      login_ui
+      krakend
+      rabbitmq
+      prometheus
+      grafana
+      mailslurper
+    }
+}
